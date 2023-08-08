@@ -1,5 +1,6 @@
 mod day_1;
 mod day_2;
+mod day_3;
 
 use std::env;
 use std::fs;
@@ -50,5 +51,14 @@ mod tests {
         let input = load_file!("day2_strategy.txt");
         let result = calculate_rps_strategy_guide_moves(&input);
         assert_eq!(result, 13187);
+    }
+
+    use crate::day_3::*;
+
+    #[test]
+    fn advent_day3_part1() {
+        let input = load_file!("day3_rucksack.txt");
+        let result = calculate_sum_of_rucksack_priorities(&input);
+        assert_eq!(result, 7674);
     }
 }
