@@ -1,3 +1,8 @@
+use std::cmp::{
+    Ordering,
+    Ordering::{Equal, Greater, Less},
+};
+
 /**
 --- Day 2: Rock Paper Scissors ---
 
@@ -34,8 +39,12 @@ C Z
 ```
 This strategy guide predicts and recommends the following:
 
-    In the first round, your opponent will choose Rock (A), and you should choose Paper (Y). This ends in a win for you with a score of 8 (2 because you chose Paper + 6 because you won).
-    In the second round, your opponent will choose Paper (B), and you should choose Rock (X). This ends in a loss for you with a score of 1 (1 + 0).
+    In the first round, your opponent will choose Rock (A), and you should choose Paper (Y). This
+    ends in a win for you with a score of 8 (2 because you chose Paper + 6 because you won).
+
+    In the second round, your opponent will choose Paper (B), and you should choose Rock (X). This
+    ends in a loss for you with a score of 1 (1 + 0).
+
     The third round is a draw with both players choosing Scissors, giving you a score of 3 + 3 = 6.
 
 In this example, if you were to follow the strategy guide, you would get a total score of 15
@@ -44,5 +53,64 @@ In this example, if you were to follow the strategy guide, you would get a total
 What would your total score be if everything goes exactly according to your strategy guide?
 */
 pub fn calculate_rps_strategy_guide_score(list_text: &str) -> i32 {
-    list_text.len() as i32
+    list_text.lines().fold(0, |score, line| {
+        let mut line = line.chars();
+        let opponent: RPS = line.next().expect("Invalid input!").into();
+        let player: RPS = line.next_back().expect("Invalid input!").into();
+
+        score + player.value() + player.play(&opponent)
+    })
+}
+
+#[derive(Eq, PartialEq)]
+enum RPS {
+    Rock,
+    Paper,
+    Scissors,
+}
+
+impl RPS {
+    fn value(&self) -> i32 {
+        match self {
+            RPS::Rock => 1,
+            RPS::Paper => 2,
+            RPS::Scissors => 3,
+        }
+    }
+
+    fn play(&self, other: &RPS) -> i32 {
+        match self.partial_cmp(other).unwrap_or(Equal) {
+            Less => 0,
+            Equal => 3,
+            Greater => 6,
+        }
+    }
+}
+
+impl From<char> for RPS {
+    fn from(c: char) -> Self {
+        match c {
+            'A' => RPS::Rock,
+            'X' => RPS::Rock,
+            'B' => RPS::Paper,
+            'Y' => RPS::Paper,
+            'C' => RPS::Scissors,
+            'Z' => RPS::Scissors,
+            _ => panic!("Invalid input!"),
+        }
+    }
+}
+
+impl PartialOrd for RPS {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self == other {
+            return Some(Equal);
+        }
+        match (self, other) {
+            (RPS::Rock, RPS::Paper) => Some(Less),
+            (RPS::Paper, RPS::Scissors) => Some(Less),
+            (RPS::Scissors, RPS::Rock) => Some(Less),
+            _ => Some(Greater),
+        }
+    }
 }
