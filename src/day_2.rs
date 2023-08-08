@@ -1,3 +1,5 @@
+use crate::day_2::Outcome::*;
+use crate::day_2::RPS::*;
 use std::cmp::{
     Ordering,
     Ordering::{Equal, Greater, Less},
@@ -58,7 +60,50 @@ pub fn calculate_rps_strategy_guide_score(list_text: &str) -> i32 {
         let opponent: RPS = line.next().expect("Invalid input!").into();
         let player: RPS = line.next_back().expect("Invalid input!").into();
 
-        score + player.value() + player.play(&opponent)
+        score + player.value() + player.play(&opponent).value()
+    })
+}
+
+/**
+--- Part Two ---
+
+The Elf finishes helping with the tent and sneaks back over to you. "Anyway, the second column says
+how the round needs to end: X means you need to lose, Y means you need to end the round in a draw,
+and Z means you need to win. Good luck!"
+
+The total score is still calculated in the same way, but now you need to figure out what shape to
+choose so the round ends as indicated. The example above now goes like this:
+
+    In the first round, your opponent will choose Rock (A), and you need the round to end in a draw
+    (Y), so you also choose Rock. This gives you a score of 1 + 3 = 4.
+
+    In the second round, your opponent will choose Paper (B), and you choose Rock so you lose (X)
+    with a score of 1 + 0 = 1.
+
+    In the third round, you will defeat your opponent's Scissors with Rock for a score of 1 + 6 = 7.
+
+Now that you're correctly decrypting the ultra top secret strategy guide, you would get a total
+score of 12.
+
+Following the Elf's instructions for the second column, what would your total score be if everything
+goes exactly according to your strategy guide?
+*/
+pub fn calculate_rps_strategy_guide_moves(list_text: &str) -> i32 {
+    list_text.lines().fold(0, |score, line| {
+        let mut chars = line.chars();
+        let opponent: RPS = chars.next().unwrap().into();
+        let outcome: Outcome = chars.next_back().unwrap().into();
+        let player = match (&opponent, &outcome) {
+            (_, Tie) => opponent,
+            (Rock, Loss) => Scissors,
+            (Rock, Win) => Paper,
+            (Paper, Loss) => Rock,
+            (Paper, Win) => Scissors,
+            (Scissors, Loss) => Paper,
+            (Scissors, Win) => Rock,
+        };
+
+        score + player.value() + outcome.value()
     })
 }
 
@@ -69,20 +114,37 @@ enum RPS {
     Scissors,
 }
 
+#[derive(Eq, PartialEq)]
+enum Outcome {
+    Win,
+    Loss,
+    Tie,
+}
+
+impl Outcome {
+    fn value(&self) -> i32 {
+        match self {
+            Loss => 0,
+            Tie => 3,
+            Win => 6,
+        }
+    }
+}
+
 impl RPS {
     fn value(&self) -> i32 {
         match self {
-            RPS::Rock => 1,
-            RPS::Paper => 2,
-            RPS::Scissors => 3,
+            Rock => 1,
+            Paper => 2,
+            Scissors => 3,
         }
     }
 
-    fn play(&self, other: &RPS) -> i32 {
+    fn play(&self, other: &RPS) -> Outcome {
         match self.partial_cmp(other).unwrap_or(Equal) {
-            Less => 0,
-            Equal => 3,
-            Greater => 6,
+            Less => Loss,
+            Equal => Tie,
+            Greater => Win,
         }
     }
 }
@@ -90,12 +152,23 @@ impl RPS {
 impl From<char> for RPS {
     fn from(c: char) -> Self {
         match c {
-            'A' => RPS::Rock,
-            'X' => RPS::Rock,
-            'B' => RPS::Paper,
-            'Y' => RPS::Paper,
-            'C' => RPS::Scissors,
-            'Z' => RPS::Scissors,
+            'A' => Rock,
+            'X' => Rock,
+            'B' => Paper,
+            'Y' => Paper,
+            'C' => Scissors,
+            'Z' => Scissors,
+            _ => panic!("Invalid input!"),
+        }
+    }
+}
+
+impl From<char> for Outcome {
+    fn from(c: char) -> Self {
+        match c {
+            'X' => Loss,
+            'Y' => Tie,
+            'Z' => Win,
             _ => panic!("Invalid input!"),
         }
     }
@@ -107,9 +180,9 @@ impl PartialOrd for RPS {
             return Some(Equal);
         }
         match (self, other) {
-            (RPS::Rock, RPS::Paper) => Some(Less),
-            (RPS::Paper, RPS::Scissors) => Some(Less),
-            (RPS::Scissors, RPS::Rock) => Some(Less),
+            (Rock, Paper) => Some(Less),
+            (Paper, Scissors) => Some(Less),
+            (Scissors, Rock) => Some(Less),
             _ => Some(Greater),
         }
     }

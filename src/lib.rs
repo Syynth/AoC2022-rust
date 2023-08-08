@@ -47,6 +47,8 @@ mod tests {
 
     #[test]
     fn advent_day2_part2() {
-        //
+        let input = load_file!("day2_strategy.txt");
+        let result = calculate_rps_strategy_guide_moves(&input);
+        assert_eq!(result, 13187);
     }
 }
